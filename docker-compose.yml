@@ -1,0 +1,32 @@
+version: "3.9"
+services:
+  selenium:
+    image: selenium/standalone-chrome:latest
+    ports:
+      - "4444:4444"
+      - "7900:7900"
+    shm_size: 2g
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://selenium:4444"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+
+  video-scraper:
+    ports:
+      - '5000:5000'
+    build: .
+    depends_on:
+      selenium:
+        condition: service_healthy
+    environment:
+#      - SCRAPER_URL=https://www.mako.co.il/news-military/6361323ddea5a810/Article-dea506e9f824b81026.htm?sCh=31750a2610f26110&pId=173113802
+      - SCRAPER_URL=https://www.nytimes.com/live/2023/10/19/world/israel-hamas-war-gaza-news
+#      - SCRAPER_URL=https://www.nytimes.com/live/2023/10/19/world/israel-hamas-war-gaza-news
+      - ELEMENT_IDENTIFIER=overlay-2cwpQscP
+      - OUTPUT_DIRECTORY=video_playlist
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
